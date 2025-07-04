@@ -10,7 +10,7 @@ const codeLines = [
 ];
 
 const SourcesPanel: React.FC = () => {
-  const [explanation, setExplanation] = useState(
+  const [explanation] = useState(
     `<strong>소스 패널</strong>은 <strong>코드 디버깅</strong>과 <strong>브레이크포인트</strong> 설정, <strong>변수 값 확인</strong> 등 개발자가 코드의 흐름을 추적하고 문제를 빠르게 찾을 수 있도록 도와줍니다.<br/><br/>
     <ul>
       <li>자바스크립트 파일 탐색</li>

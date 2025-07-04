@@ -67,13 +67,13 @@ const ConsolePanel: React.FC = () => {
       label: 'TypeError 발생',
       action: () => {
         try {
-          // @ts-ignore
+          // @ts-expect-error
           const obj = null;
-          obj.someMethod();
+          (obj as any).someMethod();
         } catch (error) {
           handleAction(
             'error', 
-            `TypeError: ${error.message}\n    at ConsolePanel.tsx:60:15`,
+            `TypeError: ${(error as Error).message}\n    at ConsolePanel.tsx:60:15`,
             'TypeError는 변수나 속성이 존재하지 않거나, 잘못된 타입으로 접근하려고 할 때 발생합니다. 주로 null/undefined 참조나 메서드 호출 오류에서 발생합니다.'
           );
         }
@@ -157,7 +157,7 @@ const ConsolePanel: React.FC = () => {
                   {getLogIcon(log.type)}
                 </span>
                 <span className="log-message">
-                  {log.message}
+                  {String(log.message)}
                 </span>
               </div>
             ))

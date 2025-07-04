@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const PerformancePanel: React.FC = () => {
-  const [explanation, setExplanation] = useState(
+  const [explanation] = useState(
     `<strong>퍼포먼스 패널</strong>은 웹사이트의 <strong>성능 측정</strong>과 <strong>타임라인 분석</strong>을 통해 병목 구간을 찾고, 최적화 포인트를 파악할 수 있도록 도와줍니다.<br/><br/>
     <ul>
       <li>렌더링, 스크립트 실행, 레이아웃, 페인트 등 성능 측정</li>

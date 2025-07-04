@@ -16,13 +16,15 @@ const ApplicationPanel: React.FC = () => {
   const valueRef = useRef<HTMLInputElement>(null);
 
   const handleAdd = () => {
-    const key = keyRef.current?.value;
-    const value = valueRef.current?.value;
-    if (key && value) {
-      addLocalStorageItem({ key, value });
-      keyRef.current.value = '';
-      valueRef.current.value = '';
-      setExplanation(`'${key}' 키에 값을 추가/수정했습니다.`);
+    if (keyRef.current && valueRef.current) {
+      const key = keyRef.current.value;
+      const value = valueRef.current.value;
+      if (key && value) {
+        addLocalStorageItem({ key, value });
+        keyRef.current.value = '';
+        valueRef.current.value = '';
+        setExplanation(`'${key}' 키에 값을 추가/수정했습니다.`);
+      }
     }
   };
 

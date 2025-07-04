@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const MemoryPanel: React.FC = () => {
-  const [explanation, setExplanation] = useState(
+  const [explanation] = useState(
     `<strong>메모리 패널</strong>은 <strong>메모리 사용량</strong> 측정, <strong>누수(Leak) 진단</strong>, <strong>스냅샷 분석</strong> 등으로 웹 앱의 메모리 문제를 파악할 수 있도록 도와줍니다.<br/><br/>
     <ul>
       <li>자바스크립트 객체의 메모리 사용량 측정</li>

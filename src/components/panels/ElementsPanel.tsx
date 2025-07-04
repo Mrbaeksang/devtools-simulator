@@ -4,7 +4,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAppContext } from '../../contexts/AppContext';
 
 const ElementsPanel: React.FC = () => {
-  const { cardState, setCardState, addLog } = useAppContext();
+  const { cardState, setCardState } = useAppContext();
   const [explanation, setExplanation] = useState(
     `<strong>엘리먼트 패널</strong>은 웹 페이지의 <strong>DOM 구조</strong>를 실시간으로 탐색하고, <strong>HTML/CSS 스타일</strong>을 직접 수정할 수 있는 곳입니다.<br/><br/>
     <ul>
