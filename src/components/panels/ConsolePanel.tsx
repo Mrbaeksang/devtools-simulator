@@ -12,11 +12,13 @@ const ConsolePanel: React.FC = () => {
       <li>경고: <strong>console.warn</strong></li>
       <li>에러: <strong>console.error</strong></li>
       <li>정보: <strong>console.info</strong></li>
+      <li>표 출력: <strong>console.table</strong></li>
     </ul>
-    <span class="example">아래 버튼을 눌러 다양한 로그를 출력해보세요.<br/>TypeError 버튼으로 실제 에러를 발생시켜보고, 에러 메시지를 확인하세요.</span>
+    <span class="example">아래 버튼을 눌러 다양한 로그를 출력해보세요.<br/>TypeError 버튼으로 실제 에러를 발생시켜보고, 에러 메시지를 확인하세요.<br/>console.table 버튼으로 표 출력도 실습해보세요.</span>
     <span class="tip">Tip: 객체는 <strong>console.table(obj)</strong>로 표 형태로 볼 수 있습니다.<br/>변수나 함수명을 입력하면 현재 값/정의도 바로 확인할 수 있습니다.</span>`
   );
   const logsEndRef = useRef<HTMLDivElement>(null);
+  const [tableData, setTableData] = useState<any[] | null>(null);
 
   // Auto-scroll to bottom when logs change
   useEffect(() => {
@@ -78,9 +80,22 @@ const ConsolePanel: React.FC = () => {
       }
     },
     {
+      label: 'console.table',
+      action: () => {
+        const data = [
+          { 이름: '홍길동', 나이: 28, 직업: '개발자' },
+          { 이름: '김철수', 나이: 32, 직업: '디자이너' },
+          { 이름: '이영희', 나이: 25, 직업: '기획자' },
+        ];
+        setTableData(data);
+        setExplanation('console.table()로 객체 배열을 표 형태로 출력했습니다.');
+      }
+    },
+    {
       label: '콘솔 지우기',
       action: () => {
         clearLogs();
+        setTableData(null);
         setExplanation('콘솔 로그를 모두 지웠습니다.');
       }
     },
@@ -120,6 +135,7 @@ const ConsolePanel: React.FC = () => {
             className="clear-button"
             onClick={() => {
               clearLogs();
+              setTableData(null);
               setExplanation('콘솔 로그를 모두 지웠습니다.');
             }}
           >
@@ -148,6 +164,29 @@ const ConsolePanel: React.FC = () => {
           )}
           <div ref={logsEndRef} />
         </div>
+        {tableData && (
+          <div style={{ margin: '16px 0' }}>
+            <h4>console.table 결과</h4>
+            <table className="storage-table">
+              <thead>
+                <tr>
+                  {Object.keys(tableData[0]).map((key) => (
+                    <th key={key}>{key}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tableData.map((row, idx) => (
+                  <tr key={idx}>
+                    {Object.values(row).map((val, i) => (
+                      <td key={i}>{val}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
       
       <div className="panel-section">

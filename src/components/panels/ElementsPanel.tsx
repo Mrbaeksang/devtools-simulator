@@ -33,6 +33,14 @@ const ElementsPanel: React.FC = () => {
     setExplanation(explain);
   };
 
+  // 스타일 수정 핸들러
+  const handleStyleChange = (key: keyof React.CSSProperties, value: string) => {
+    updateCardState({ style: { ...cardState.style, [key]: value } });
+  };
+  const handleClassNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateCardState({ className: e.target.value });
+  };
+
   const actions = [
     {
       label: '텍스트 변경',
@@ -115,16 +123,43 @@ const ElementsPanel: React.FC = () => {
         ))}
       </div>
       
-      <div className="panel-section">
-        <h3>HTML 구조</h3>
-        <div className="code-container">
-          <SyntaxHighlighter 
-            language="html" 
-            style={vscDarkPlus}
-            customStyle={{ margin: 0, borderRadius: '4px' }}
-          >
-            {cardHtml.trim()}
-          </SyntaxHighlighter>
+      <div className="panel-section" style={{ display: 'flex', gap: 32 }}>
+        <div style={{ flex: 2 }}>
+          <h3>HTML 구조</h3>
+          <div className="code-container">
+            <SyntaxHighlighter 
+              language="html" 
+              style={vscDarkPlus}
+              customStyle={{ margin: 0, borderRadius: '4px' }}
+            >
+              {cardHtml.trim()}
+            </SyntaxHighlighter>
+          </div>
+        </div>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <h3>Styles</h3>
+          <div className="styles-view">
+            <div style={{ marginBottom: 8 }}>
+              <label>className: </label>
+              <input type="text" value={cardState.className} onChange={handleClassNameChange} style={{ width: '100%' }} />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>backgroundColor: </label>
+              <input type="color" value={cardState.style.backgroundColor as string || '#f8f9fa'} onChange={e => handleStyleChange('backgroundColor', e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>color: </label>
+              <input type="color" value={cardState.style.color as string || '#333333'} onChange={e => handleStyleChange('color', e.target.value)} />
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>fontSize: </label>
+              <input type="number" min={10} max={48} value={parseInt((cardState.style.fontSize as string || '18').toString())} onChange={e => handleStyleChange('fontSize', e.target.value + 'px')} /> px
+            </div>
+            <div style={{ marginBottom: 8 }}>
+              <label>borderRadius: </label>
+              <input type="number" min={0} max={32} value={parseInt((cardState.style.borderRadius as string || '8').toString())} onChange={e => handleStyleChange('borderRadius', e.target.value + 'px')} /> px
+            </div>
+          </div>
         </div>
       </div>
       

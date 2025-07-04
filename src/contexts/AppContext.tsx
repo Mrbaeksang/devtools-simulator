@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { CardState, LogEntry, NetworkRequest, TabType } from '../types';
+import type { CardState, LogEntry, NetworkRequest, TabType, LocalStorageItem } from '../types';
 
 interface AppContextType {
   activeTab: TabType;
@@ -13,6 +13,10 @@ interface AppContextType {
   networkRequests: NetworkRequest[];
   addNetworkRequest: (request: Omit<NetworkRequest, 'id' | 'timestamp'>) => void;
   clearNetworkRequests: () => void;
+  localStorageItems: LocalStorageItem[];
+  addLocalStorageItem: (item: LocalStorageItem) => void;
+  removeLocalStorageItem: (key: string) => void;
+  clearLocalStorage: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -45,6 +49,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [networkRequests, setNetworkRequests] = useState<NetworkRequest[]>([]);
+  const [localStorageItems, setLocalStorageItems] = useState<LocalStorageItem[]>([
+    { key: 'theme', value: 'dark' },
+    { key: 'user-token', value: 'dummy-token-12345' },
+  ]);
 
   const addLog = (entry: Omit<LogEntry, 'id' | 'timestamp'>) => {
     const newLog: LogEntry = {
@@ -68,6 +76,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const clearNetworkRequests = () => setNetworkRequests([]);
 
+  const addLocalStorageItem = (item: LocalStorageItem) => {
+    setLocalStorageItems(prev => {
+      const existing = prev.find(i => i.key === item.key);
+      if (existing) {
+        return prev.map(i => (i.key === item.key ? item : i));
+      }
+      return [...prev, item];
+    });
+  };
+
+  const removeLocalStorageItem = (key: string) => {
+    setLocalStorageItems(prev => prev.filter(item => item.key !== key));
+  };
+
+  const clearLocalStorage = () => setLocalStorageItems([]);
+
   return (
     <AppContext.Provider
       value={{
@@ -81,6 +105,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         networkRequests,
         addNetworkRequest,
         clearNetworkRequests,
+        localStorageItems,
+        addLocalStorageItem,
+        removeLocalStorageItem,
+        clearLocalStorage,
       }}
     >
       {children}

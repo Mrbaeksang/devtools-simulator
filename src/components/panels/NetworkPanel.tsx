@@ -2,7 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 import type { NetworkRequest } from '../../types';
 
-type MockRequest = Omit<NetworkRequest, 'id' | 'timestamp'> & { explain: string };
+type MockRequest = Omit<NetworkRequest, 'id' | 'timestamp'> & {
+  explain: string;
+  headers: Record<string, string>;
+  responseBody: any;
+};
 
 const mockRequests: MockRequest[] = [
   {
@@ -14,6 +18,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'OK',
     explain:
       '성공적인 요청입니다. 상태 코드 200은 서버가 요청을 성공적으로 처리했음을 의미합니다.',
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'max-age=3600' },
+    responseBody: { products: [{ id: 1, name: 'Laptop' }, { id: 2, name: 'Mouse' }] },
   },
   {
     name: 'api/users',
@@ -24,6 +30,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Created',
     explain:
       '리소스가 성공적으로 생성되었습니다. 상태 코드 201은 POST 요청으로 새로운 리소스가 생성되었을 때 반환됩니다. 응답 헤더의 Location 필드에 새로 생성된 리소스의 URI가 포함될 수 있습니다.',
+    headers: { 'Content-Type': 'application/json', Location: '/api/users/123' },
+    responseBody: { id: 123, name: 'New User' },
   },
   {
     name: 'api/profile',
@@ -34,6 +42,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Unauthorized',
     explain:
       '인증에 실패했습니다. 상태 코드 401은 요청에 유효한 인증 자격 증명이 없음을 의미합니다. 로그인이 필요하거나 토큰이 만료되었을 수 있습니다.',
+    headers: { 'WWW-Authenticate': 'Bearer' },
+    responseBody: { error: 'Invalid token' },
   },
   {
     name: 'api/admin',
@@ -44,6 +54,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Forbidden',
     explain:
       '접근 권한이 없습니다. 상태 코드 403은 서버가 요청을 이해했지만, 권한이 거부되었음을 의미합니다. 관리자 권한이 필요한 페이지나 리소스에 접근할 때 발생할 수 있습니다.',
+    headers: { 'Content-Type': 'application/json' },
+    responseBody: { error: 'Forbidden' },
   },
   {
     name: 'api/nonexistent',
@@ -54,6 +66,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Not Found',
     explain:
       '요청한 리소스를 찾을 수 없습니다. 상태 코드 404는 서버가 요청한 리소스를 찾을 수 없을 때 반환됩니다. 잘못된 URL을 요청했을 때 발생할 수 있습니다.',
+    headers: { 'Content-Type': 'application/json' },
+    responseBody: { error: 'Not Found' },
   },
   {
     name: 'api/error',
@@ -64,6 +78,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Internal Server Error',
     explain:
       '서버 내부 오류가 발생했습니다. 상태 코드 500은 서버에서 예상치 못한 오류가 발생했음을 의미합니다. 서버 로그를 확인하여 원인을 파악해야 합니다.',
+    headers: { 'Content-Type': 'application/json' },
+    responseBody: { error: 'Internal Server Error' },
   },
   {
     name: 'api/slow',
@@ -74,6 +90,8 @@ const mockRequests: MockRequest[] = [
     statusText: 'Timeout',
     explain:
       '네트워크 요청이 시간 초과되었습니다. 서버 응답이 느리거나 네트워크 연결에 문제가 있을 수 있습니다. 요청을 재시도하거나 네트워크 연결을 확인해 주세요.',
+    headers: { 'Content-Type': 'application/json' },
+    responseBody: { error: 'Timeout' },
   },
 ];
 
@@ -104,76 +122,107 @@ const NetworkPanel: React.FC = () => {
     <span class="example">아래 버튼을 눌러 다양한 네트워크 요청을 발생시켜보세요.<br/>상태코드(200, 404, 500 등)와 의미를 확인하세요.</span>
     <span class="tip">Tip: 실제 개발자 도구에서는 요청을 우클릭해 cURL로 복사하거나, 응답을 미리보기로 볼 수 있습니다.<br/>상태코드별로 색상이 다르게 표시되어 빠르게 문제를 찾을 수 있습니다.</span>`
   );
+  const [selectedRequest, setSelectedRequest] = useState<NetworkRequest | null>(null);
 
   const handleClick = useCallback(
     (req: MockRequest) => {
       const { explain, ...rest } = req;
       addNetworkRequest(rest);
+      setSelectedRequest({ ...rest, id: '', timestamp: new Date() });
       setExplanation(explain);
     },
     [addNetworkRequest]
   );
 
+  const handleRowClick = (req: NetworkRequest) => {
+    setSelectedRequest(req);
+    const mockReq = mockRequests.find(m => m.url === req.url);
+    if (mockReq) {
+      setExplanation(mockReq.explain);
+    }
+  };
+
   const handleClear = useCallback(() => {
     clearNetworkRequests();
+    setSelectedRequest(null);
     setExplanation('네트워크 요청 기록을 모두 지웠습니다.');
   }, [clearNetworkRequests]);
 
   return (
-    <div className="panel-content">
-      <div className="panel-actions">
-        {mockRequests.map(req => (
-          <button
-            key={req.name}
-            className="action-button"
-            onClick={() => handleClick(req)}
-          >
-            {req.name} ({req.status})
+    <div className="panel-content network-layout">
+      <div className="network-main">
+        <div className="panel-actions">
+          {mockRequests.map(req => (
+            <button
+              key={req.name}
+              className="action-button"
+              onClick={() => handleClick(req)}
+            >
+              {req.name} ({req.status})
+            </button>
+          ))}
+          <button className="action-button clear-button" onClick={handleClear}>
+            기록 지우기
           </button>
-        ))}
-        <button className="action-button clear-button" onClick={handleClear}>
-          기록 지우기
-        </button>
-      </div>
+        </div>
 
-      <section className="panel-section">
-        <h3>네트워크 요청</h3>
-        {networkRequests.length ? (
-          <table className="network-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Type</th>
-                <th>URL</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {networkRequests.map(req => (
-                <tr key={req.id}>
-                  <td>{req.name}</td>
-                  <td className={getStatusClass(req.status)}>
-                    {getStatusText(req.status, req.statusText)}
-                  </td>
-                  <td>{req.type}</td>
-                  <td className="url-cell">{req.url}</td>
-                  <td>{req.time}ms</td>
+        <section className="panel-section">
+          <h3>네트워크 요청</h3>
+          {networkRequests.length ? (
+            <table className="network-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Type</th>
+                  <th>URL</th>
+                  <th>Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {networkRequests.map(req => (
+                  <tr
+                    key={req.id}
+                    onClick={() => handleRowClick(req)}
+                    className={selectedRequest?.id === req.id ? 'selected' : ''}
+                  >
+                    <td>{req.name}</td>
+                    <td className={getStatusClass(req.status)}>
+                      {getStatusText(req.status, req.statusText)}
+                    </td>
+                    <td>{req.type}</td>
+                    <td className="url-cell">{req.url}</td>
+                    <td>{req.time}ms</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="empty-message">
+              네트워크 요청이 없습니다. 요청 버튼을 눌러보세요.
+            </div>
+          )}
+        </section>
+      </div>
+      <div className="network-details">
+        {selectedRequest ? (
+          <section className="panel-section">
+            <h3>상세 정보: {selectedRequest.name}</h3>
+            <h4>Headers</h4>
+            <pre className="code-block">{JSON.stringify(mockRequests.find(r => r.url === selectedRequest.url)?.headers || {}, null, 2)}</pre>
+            <h4>Response</h4>
+            <pre className="code-block">{JSON.stringify(mockRequests.find(r => r.url === selectedRequest.url)?.responseBody || {}, null, 2)}</pre>
+            <hr/>
+            <h4>설명</h4>
+            <div className="explanation" dangerouslySetInnerHTML={{ __html: explanation }} />
+          </section>
         ) : (
-          <div className="empty-message">
-            네트워크 요청이 없습니다. 요청 버튼을 눌러보세요.
-          </div>
+          <section className="panel-section">
+            <h3>설명</h3>
+            <div className="explanation" dangerouslySetInnerHTML={{ __html: explanation }} />
+          </section>
         )}
-      </section>
-
-      <section className="panel-section">
-        <h3>설명</h3>
-        <div className="explanation" dangerouslySetInnerHTML={{ __html: explanation }} />
-      </section>
+      </div>
     </div>
   );
 };

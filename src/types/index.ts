@@ -38,3 +38,8 @@ export interface PanelProps {
   addLog: (entry: Omit<LogEntry, 'id' | 'timestamp'>) => void;
   addNetworkRequest: (request: Omit<NetworkRequest, 'id' | 'timestamp'>) => void;
 }
+
+export interface LocalStorageItem {
+  key: string;
+  value: string;
+}
