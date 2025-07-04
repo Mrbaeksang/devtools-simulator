@@ -67,7 +67,6 @@ const ConsolePanel: React.FC = () => {
       label: 'TypeError 발생',
       action: () => {
         try {
-          // @ts-expect-error
           const obj = null;
           (obj as any).someMethod();
         } catch (error) {
@@ -179,7 +178,7 @@ const ConsolePanel: React.FC = () => {
                 {tableData.map((row, idx) => (
                   <tr key={idx}>
                     {Object.values(row).map((val, i) => (
-                      <td key={i}>{val}</td>
+                      <td key={i}>{String(val)}</td>
                     ))}
                   </tr>
                 ))}
